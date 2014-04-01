@@ -1,6 +1,0 @@
-include Jamrules ;
-
-Main tarsnap-gui : main.cpp backupconfiguration.cpp tarsnapoptions.cpp
-        watcher.cpp .moc.cpp ;
-
-Moc .moc.cpp : backupconfiguration.h tarsnapoptions.h watcher.h ;

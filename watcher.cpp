@@ -49,7 +49,6 @@ Watcher::Watcher( QProcess * source, const QString & label, QWidget * parent )
 	     this, SLOT(reject()) );
     actionButtons->addStretch( 1 );
     actionButtons->addWidget( b );
-    actionButtons->addStretch( 1 );
 
     actionButtons->addWidget( close );
     connect( close, SIGNAL(clicked()),
@@ -57,7 +56,7 @@ Watcher::Watcher( QProcess * source, const QString & label, QWidget * parent )
 
     connect( tarsnap, SIGNAL(readyReadStandardOutput()),
 	     this, SLOT(read()) );
-    connect( tarsnap, SIGNAL(finished(int, int)),
+    connect( tarsnap, SIGNAL(finished(int, QProcess::ExitStatus)),
 	     this, SLOT(finish()) );
 }
 

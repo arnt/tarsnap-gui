@@ -2,6 +2,7 @@
 
 #include "backupconfiguration.h"
 
+#include "firsttimeconfiguration.h"
 #include "tarsnapoptions.h"
 #include "watcher.h"
 
@@ -157,12 +158,18 @@ void BackupConfiguration::setupSubstance()
     exceptions->setColumnWidth( 0, width() * 2 / 3 );
     baseDirectory->setText( "/" );
 
-    if ( settingsStorage->value( "tarsnap/keyfile" ).isNull() )
-	settingsStorage->setValue( "tarsnap/keyfile",
-				   "/root/tarsnap.key" );
-    if ( settingsStorage->value( "tarsnap/cachefile" ).isNull() )
-	settingsStorage->setValue( "tarsnap/cachefile",
+    if ( settingsStorage->value( "tarsnap/cachedir" ).isNull() ) {
+	settingsStorage->setValue( "tarsnap/cachedir",
 				   "/var/lib/tarsnap/cache" );
+    }
+    if ( settingsStorage->value( "tarsnap/keyfile" ).isNull() ) {
+	FirstTimeConfiguration f( 0, "" );
+	f.resize( width() * 3 / 4, f.sizeHint().height() );
+	f.exec();
+	if ( !f.filename().isNull() )
+	    settingsStorage->setValue( "tarsnap/keyfile",
+				       f.filename() );
+    }
 }
 
 
@@ -205,10 +212,10 @@ void BackupConfiguration::browseBaseDirectory()
 void BackupConfiguration::performBackup()
 {
     QString key = settingsStorage->value( "tarsnap/keyfile" ).toString();
-    QString cache = settingsStorage->value( "tarsnap/cachefile" ).toString();
+    QString cache = settingsStorage->value( "tarsnap/cachedir" ).toString();
 
     QFile keyFile( key );
-    if ( false && !keyFile.exists() ) {
+    if ( !keyFile.exists() ) {
 	QMessageBox::critical( this,
 			       tr( "Error opening key file" ),
 			       tr( "Tarsnap key file does not exist, "
@@ -219,17 +226,18 @@ void BackupConfiguration::performBackup()
 	return;
     }
 
-    QFile cacheFile( cache );
-    if ( false && !keyFile.exists() ) {
+    QDir cacheDir( cache );
+    if ( !cacheDir.exists() ) {
 	QMessageBox::critical( this,
 			       tr( "Error opening cache file" ),
-			       tr( "Tarsnap cache file does not exist, "
+			       tr( "Tarsnap cache directory does not exist, "
 				   "or cannot be opened.\n"
 				   "Perhaps root access is needed, or you may "
 				   "need to create or chmod the directory.\n"
 				   "File name: %1" ).arg( cache ) );
 	return;
     }
+
     char tmp[64];
     ::gethostname( tmp, 64 );
     tmp[63] = 0;
@@ -237,10 +245,12 @@ void BackupConfiguration::performBackup()
     QDateTime now = QDateTime::currentDateTime();
     backupName.append( now.toString( "-yyyy-MM-dd-hh-mm" ) );
     QProcess * tarsnap = new QProcess( this ); // a memory leak. how terrible.
+    tarsnap->setWorkingDirectory( baseDirectory->text() );
     tarsnap->setProcessChannelMode( QProcess::MergedChannels );
     QStringList cli = commandLine( backupName );
     Watcher watcher( tarsnap, cli.join( " " ), this );
-    tarsnap->start( "/usr/bin/tarsnap", cli );
+    watcher.resize( width() * 7 / 8, height() * 7 / 8 );
+    tarsnap->start( "/usr/local/bin/tarsnap", cli );
     watcher.show();
     watcher.exec();
 }
@@ -262,7 +272,7 @@ void BackupConfiguration::saveScript()
 	return;
 
     QString key = settingsStorage->value( "tarsnap/keyfile" ).toString();
-    QString cache = settingsStorage->value( "tarsnap/cachefile" ).toString();
+    QString cache = settingsStorage->value( "tarsnap/cachedir" ).toString();
 
     QTextStream out( &script );
     out << "#!/bin/sh\n"
@@ -274,13 +284,6 @@ void BackupConfiguration::saveScript()
 	<< "if [ ! -f \"" << key << "\" ]; then\n"
 	<< "    echo Cannot access " << key << "\n"
 	<< "    [ 0 -eq $(id -u) ] || echo Root access may be needed.\n"
-	<< "    echo If the file does not exist, you can create it with\n"
-	<< "    echo tarsnap-keygen --keyfile \"" << key << "\" "
-	<< "--user '<youraccount>' --machine $(/bin/hostname)\n"
-	<< "    echo It is also possible to set a passphrase, "
-	<< "see the manpage. '<youraccount>'\n"
-	<< "    echo is your Tarsnap account. If you have not made one yet,\n"
-	<< "    echo https://www.tarsnap.com/account.html is the registration form.\n"
 	<< "    exit 1\n"
 	<< "fi\n"
 	<< "\n"
@@ -295,6 +298,8 @@ void BackupConfiguration::saveScript()
 	<< "# good idea to remove the -v option from the tarsnap invocation\n"
 	<< "# once you have seen it work correctly.\n"
 	<< "\n"
+	<< "cd " << shQuoted( baseDirectory->text() ) << "\n"
+	<< "\n"
 	<< "FN=$(/bin/hostname)-$(date +%Y-%m-%d-%H-%M)\n"
 	<< "\n";
 
@@ -303,13 +308,17 @@ void BackupConfiguration::saveScript()
     l << commandLine( "$FN" );
     auto s = l.begin();
     int col = 0;
+    QString prefix = baseDirectory->text();
+    if ( prefix != "/" )
+	prefix += "/";
     while ( s != l.end() ) {
 	QString quoted;
-	// we want to quote everything, except that the filename has
-	// to be unquoted. this will not match anything from the user,
-	// since all of those strings start with a slash.
+	// this breaks terribly: we want to exclude foo, but actually
+	// do exclude **/foo.
 	if ( *s == "$FN" )
 	    quoted = *s;
+	else if ( s->startsWith( prefix ) )
+	    quoted = shQuoted( s->mid( prefix.length()) );
 	else
 	    quoted = shQuoted( *s );
 	if ( col == 0 ) {
@@ -357,7 +366,7 @@ QStringList BackupConfiguration::commandLine( const QString & filename ) const
 	   << "--keyfile"
 	   << settingsStorage->value( "tarsnap/keyfile" ).toString()
 	   << "--cachedir"
-	   << settingsStorage->value( "tarsnap/cachefile" ).toString();
+	   << settingsStorage->value( "tarsnap/cachedir" ).toString();
 
     if ( !crossMountPoints->isChecked() )
 	result << "--one-file-system";
@@ -366,13 +375,16 @@ QStringList BackupConfiguration::commandLine( const QString & filename ) const
 	exceptions->selectionModel()->selectedIndexes();
     auto x = excludedDirectories.begin();
     while ( x != excludedDirectories.end() ) {
+	// this will work... but it would be prettier if the exclude
+	// options were relative to the backup root. at present
+	// they're absolute.
 	if ( x->column() == 0 )
 	    result << "--exclude"
 		   << x->data( QFileSystemModel::FilePathRole ).toString();
 	++x;
     }
 
-    result << baseDirectory->text();
+    result << ".";
 
     return result;
 }
@@ -419,4 +431,3 @@ void BackupConfiguration::configure()
     o.show();
     o.exec();
 }
-

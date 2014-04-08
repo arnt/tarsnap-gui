@@ -22,11 +22,12 @@ private:
     void accept();
 
 private slots:
+    void createNewKey();
     void browseForKey();
     void browseForCache();
 
 private:
-    QLineEdit * cacheFile;
+    QLineEdit * cacheDir;
     QLineEdit * keyFile;
     QSettings * settings;
 };

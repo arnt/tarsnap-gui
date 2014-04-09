@@ -21,6 +21,8 @@ class BackupConfiguration: public QWidget
 public:
     BackupConfiguration();
     ~BackupConfiguration();
+    
+    void closeEvent( QCloseEvent * );
 
 private:
     void setupLayout();

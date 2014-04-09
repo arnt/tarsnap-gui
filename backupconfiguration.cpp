@@ -431,3 +431,31 @@ void BackupConfiguration::configure()
     o.show();
     o.exec();
 }
+
+
+/*! This reimplementation nags the user about copying the key file
+    somewhere safe.
+*/
+
+void BackupConfiguration::closeEvent( QCloseEvent * e )
+{
+    QWidget::closeEvent( e );
+    if ( settingsStorage->value( "tarsnap/copied" ).toBool() )
+	return;
+
+    QMessageBox * b = new QMessageBox( 0 );
+    b->setText(
+	tr( "<b>Have you copied %1 to a safe location yet?</b>" )
+	.arg( settingsStorage->value( "tarsnap/keyfile" ).toString() ) );
+    b->setInformativeText(
+	tr( "<html>You may want to copy the file to two USB sticks, "
+	    "label them well and store them separately. Or perhaps you "
+	    "prefer something else.<p>"
+	    "You will <b>not be able to restore</b> "
+	    "a backup without that file.</html>" ) );
+    b->setStandardButtons( QMessageBox::Yes | QMessageBox::No );
+    b->setDefaultButton( QMessageBox::No );
+    int ret = b->exec();
+    if ( ret == QMessageBox::Yes )
+	settingsStorage->setValue( "tarsnap/copied", true );
+}

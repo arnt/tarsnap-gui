@@ -62,6 +62,8 @@ FirstTimeConfiguration::FirstTimeConfiguration( QWidget * parent,
 	    "<a href=https://tarsnap.com/register.cgi>tarsnap.com</a> and "
 	    "choose a login and password. The data you choose there "
 	    "are needed by this dialog to create a host-specific key.<p>"
+	    "If you already have a key, you can point to it in the "
+	    "<i>key file</i> field and hit OK.<p>"
 	    "Only the key is stored.</html>" ),
 	this );
     first->setWordWrap( true );

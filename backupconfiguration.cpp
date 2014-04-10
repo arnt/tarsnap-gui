@@ -226,15 +226,15 @@ void BackupConfiguration::performBackup()
 	return;
     }
 
-    QDir cacheDir( cache );
-    if ( !cacheDir.exists() ) {
+    QFileInfo cacheDir( cache );
+    if ( cache.isEmpty() || !cacheDir.dir().exists() ) {
 	QMessageBox::critical( this,
-			       tr( "Error opening cache file" ),
-			       tr( "Tarsnap cache directory does not exist, "
-				   "or cannot be opened.\n"
+			       tr( "Error checking cache directory" ),
+			       tr( "Tarsnap needs to create a cache directory "
+				   "and cannot.\n"
 				   "Perhaps root access is needed, or you may "
 				   "need to create or chmod the directory.\n"
-				   "File name: %1" ).arg( cache ) );
+				   "File name: '%1'" ).arg( cache ) );
 	return;
     }
 

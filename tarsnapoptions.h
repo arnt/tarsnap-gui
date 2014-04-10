@@ -15,7 +15,7 @@ class TarsnapOptions: public QDialog
 {
     Q_OBJECT
 public:
-    TarsnapOptions( QSettings * );
+    TarsnapOptions( QSettings *, const QString & );
     ~TarsnapOptions();
 
 private:
@@ -27,6 +27,7 @@ private slots:
     void browseForCache();
 
 private:
+    QString executableDirectory;
     QLineEdit * cacheDir;
     QLineEdit * keyFile;
     QSettings * settings;

@@ -19,7 +19,7 @@ class FirstTimeConfiguration: public QDialog
 {
     Q_OBJECT
 public:
-    FirstTimeConfiguration( QWidget *, const QString & );
+    FirstTimeConfiguration( QWidget *, const QString &, const QString & );
     ~FirstTimeConfiguration();
 
     QString filename() const;
@@ -30,6 +30,7 @@ private slots:
     void act();
 
 private:
+    QString executableDirectory;
     QLineEdit * login;
     QLineEdit * password;
     QLineEdit * host;

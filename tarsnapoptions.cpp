@@ -22,8 +22,9 @@
 
 /*! Constructs a rather optional dialog. */
 
-TarsnapOptions::TarsnapOptions( QSettings * s )
+TarsnapOptions::TarsnapOptions( QSettings * s, const QString & dir )
     : QDialog( 0 ),
+      executableDirectory( dir ),
       cacheDir( new QLineEdit( this ) ),
       keyFile( new QLineEdit( this ) ),
       settings( s )
@@ -95,7 +96,7 @@ TarsnapOptions::~TarsnapOptions()
 
 void TarsnapOptions::createNewKey()
 {
-    FirstTimeConfiguration f( this, keyFile->text() );
+    FirstTimeConfiguration f( this, keyFile->text(), executableDirectory );
     f.resize( width() * 7 / 8, f.sizeHint().height() );
     f.exec();
     keyFile->setText( f.filename() );

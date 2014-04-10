@@ -28,8 +28,10 @@
 /*! Constructs a naked FirstTimeConfiguration. */
 
 FirstTimeConfiguration::FirstTimeConfiguration( QWidget * parent,
-						const QString & defaultName )
+						const QString & defaultName,
+						const QString & tarsnapDir )
     : QDialog( parent ),
+      executableDirectory( tarsnapDir ),
       login( new QLineEdit( this ) ),
       password( new QLineEdit( this ) ),
       host( new QLineEdit( "", this ) ),
@@ -148,7 +150,7 @@ void FirstTimeConfiguration::act()
 	<< "--machine" << host->text().toUtf8();
     connect( tarsnap, SIGNAL(finished(int, QProcess::ExitStatus)),
 	     this, SLOT(accept()) );
-    tarsnap->start( "/usr/local/bin/tarsnap-keygen", cli );
+    tarsnap->start( executableDirectory + "/tarsnap-keygen", cli );
     QByteArray pw( password->text().toUtf8() + "\n" );
     tarsnap->write( pw.data(), pw.size() );
     ok->setText( tr( "Working" ) );

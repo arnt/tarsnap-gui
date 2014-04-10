@@ -41,6 +41,7 @@ private slots:
     void configure();
 
 private:
+    QString executableDirectory;
     QLineEdit * baseDirectory;
     QPushButton * browse;
     QCheckBox * crossMountPoints;

@@ -51,6 +51,7 @@
 
 BackupConfiguration::BackupConfiguration()
     : QWidget( 0 ),
+      executableDirectory(),
       baseDirectory( new QLineEdit( this ) ),
       browse( new QPushButton( tr( "..." ), this ) ),
       crossMountPoints( new QCheckBox( tr( "Cross mount points" ), this ) ),
@@ -159,12 +160,30 @@ void BackupConfiguration::setupSubstance()
     exceptions->setColumnWidth( 0, width() * 2 / 3 );
     baseDirectory->setText( "/" );
 
+    QStringList path = QString::fromUtf8( ::getenv( "PATH" ) )
+		       .split( ':', QString::SkipEmptyParts );
+    auto dir = path.begin();
+    while ( executableDirectory.isEmpty() && dir != path.end() ) {
+	QFile candidate( *dir + "/tarsnap" );
+	if ( candidate.exists() )
+	    executableDirectory = *dir;
+	++dir;
+    }
+    if ( executableDirectory.isEmpty() ) {
+	QMessageBox::critical( this,
+			       tr( "Cannot find tarsnap" ),
+			       tr( "You will not be able to register a key or"
+				   "perform a backup, but you can still write "
+				   "a backup script for later use.\n" ) );
+	executableDirectory = "/usr/bin";
+    }
+
     if ( settingsStorage->value( "tarsnap/cachedir" ).isNull() ) {
 	settingsStorage->setValue( "tarsnap/cachedir",
 				   "/var/lib/tarsnap/cache" );
     }
     if ( settingsStorage->value( "tarsnap/keyfile" ).isNull() ) {
-	FirstTimeConfiguration f( 0, "" );
+	FirstTimeConfiguration f( 0, "", executableDirectory );
 	f.resize( width() * 3 / 4, f.sizeHint().height() );
 	f.exec();
 	if ( !f.filename().isNull() )
@@ -424,7 +443,7 @@ QString BackupConfiguration::shQuoted( const QString & s ) const
 
 void BackupConfiguration::configure()
 {
-    TarsnapOptions o( settingsStorage );
+    TarsnapOptions o( settingsStorage, executableDirectory );
     o.resize( width() * 3 / 4, o.minimumHeight() );
     o.show();
     o.exec();

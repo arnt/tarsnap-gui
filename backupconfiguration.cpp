@@ -152,6 +152,7 @@ void BackupConfiguration::setupSubstance()
     exceptions->setModel( model );
     exceptions->setIndentation( 42 );
     exceptions->setSortingEnabled( true );
+    exceptions->sortByColumn( 0, Qt::AscendingOrder );
     exceptions->setSelectionMode( QAbstractItemView::MultiSelection );
     exceptions->setColumnHidden( 1, true );
     exceptions->setColumnHidden( 2, true );

@@ -308,17 +308,10 @@ void BackupConfiguration::saveScript()
     l << commandLine( "$FN" );
     auto s = l.begin();
     int col = 0;
-    QString prefix = baseDirectory->text();
-    if ( prefix != "/" )
-	prefix += "/";
     while ( s != l.end() ) {
 	QString quoted;
-	// this breaks terribly: we want to exclude foo, but actually
-	// do exclude **/foo.
 	if ( *s == "$FN" )
 	    quoted = *s;
-	else if ( s->startsWith( prefix ) )
-	    quoted = shQuoted( s->mid( prefix.length()) );
 	else
 	    quoted = shQuoted( *s );
 	if ( col == 0 ) {
@@ -362,7 +355,6 @@ QStringList BackupConfiguration::commandLine( const QString & filename ) const
 	   << "-f"
 	   << filename
 	   << "-v"
-	   << "--dry-run"
 	   << "--keyfile"
 	   << settingsStorage->value( "tarsnap/keyfile" ).toString()
 	   << "--cachedir"
@@ -373,14 +365,19 @@ QStringList BackupConfiguration::commandLine( const QString & filename ) const
 
     QModelIndexList excludedDirectories =
 	exceptions->selectionModel()->selectedIndexes();
+    QString prefix = baseDirectory->text();
+    if ( prefix != "/" )
+	prefix += "/";
     auto x = excludedDirectories.begin();
     while ( x != excludedDirectories.end() ) {
-	// this will work... but it would be prettier if the exclude
-	// options were relative to the backup root. at present
-	// they're absolute.
+	// this doesn't quite work; tarsnap up to 1.0.35 at least
+	// offers no (warningless) way to exclude a subdirectory
+	// without excluding others of the same name.
 	if ( x->column() == 0 )
 	    result << "--exclude"
-		   << x->data( QFileSystemModel::FilePathRole ).toString();
+		   << x->data( QFileSystemModel::FilePathRole )
+		       .toString()
+		       .mid( prefix.length() );
 	++x;
     }
 
@@ -450,9 +447,16 @@ void BackupConfiguration::closeEvent( QCloseEvent * e )
     b->setInformativeText(
 	tr( "<html>You may want to copy the file to two USB sticks, "
 	    "label them well and store them separately. Or perhaps you "
-	    "prefer something else.<p>"
-	    "You will <b>not be able to restore</b> "
-	    "a backup without that file.</html>" ) );
+	    "prefer something else. Do whatever you want, but "
+	    "keep %1 safe.<p>"
+	    "You <b>will not be able to restore a backup</b> "
+	    "without that file. Even the NSA probably cannot "
+	    "help you decrypt your backups if you lose that file.</html>" )
+	.arg( settingsStorage->value( "tarsnap/keyfile" ).toString() ) );
+    // that's not the kind of language favoured by corporate technical
+    // writers. it's the kind of language favoured by arnts who have
+    // sat too long in an office and need to get laid. I wonder how
+    // well tarsnap's audience likes it.
     b->setStandardButtons( QMessageBox::Yes | QMessageBox::No );
     b->setDefaultButton( QMessageBox::No );
     int ret = b->exec();

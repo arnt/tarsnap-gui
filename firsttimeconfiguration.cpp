@@ -62,11 +62,16 @@ FirstTimeConfiguration::FirstTimeConfiguration( QWidget * parent,
 	tr( "<html>"
 	    "Before you can use tarsnap, you have to register at "
 	    "<a href=https://tarsnap.com/register.cgi>tarsnap.com</a> and "
-	    "choose a login and password. The data you choose there "
-	    "are needed by this dialog to create a host-specific key.<p>"
+	    "choose a password. If you haven't yet, please follow "
+	    "the link and register, and add enough funds to pay for the first "
+	    "backup.<p>"
+	    "The email address and password "
+	    "are needed by this dialog to create a host-specific key. "
 	    "If you already have a key, you can point to it in the "
 	    "<i>key file</i> field and hit OK.<p>"
-	    "Only the key is stored.</html>" ),
+	    "The key is stored only in the file you specify. "
+	    "The email address is stored on tarsnap.com. "
+	    "The password is not stored anywere.</html>" ),
 	this );
     first->setWordWrap( true );
     first->setOpenExternalLinks( true );

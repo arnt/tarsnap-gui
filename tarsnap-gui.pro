@@ -1,7 +1,9 @@
-SOURCES = main.cpp backupconfiguration.cpp tarsnapoptions.cpp watcher.cpp \
-    	  firsttimeconfiguration.cpp
-HEADERS = backupconfiguration.h tarsnapoptions.h watcher.h \
-    	  firsttimeconfiguration.h
+SOURCES = main.cpp backupwizard.cpp \
+  tarsnappathpage.cpp accountpage.cpp backuppage.cpp \
+  includepage.cpp actionpage.cpp
+HEADERS = backupwizard.h \
+  tarsnappathpage.h accountpage.h backuppage.h \
+  includepage.h actionpage.h
 TARGET = tarsnap-gui
 CONFIG += qt
 # to enable debugging:

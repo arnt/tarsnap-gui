@@ -103,10 +103,13 @@ QStringList IncludePage::selectedDirectories()
 	prefix += "/";
     auto x = includedDirectories.begin();
     while ( x != includedDirectories.end() ) {
-	if ( x->column() == 0 )
-	    result << x->data( QFileSystemModel::FilePathRole )
-		.toString()
-		.mid( prefix.length() );
+	if ( x->column() == 0 ) {
+	    QString name = x->data( QFileSystemModel::FilePathRole )
+			   .toString()
+			   .mid( prefix.length() );
+	    if ( !name.isEmpty() )
+		result << name;
+	}
 	++x;
     }
     return result;

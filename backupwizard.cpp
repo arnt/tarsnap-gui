@@ -15,13 +15,16 @@
 
 /*! \class BackupWizard backupwizard.h
   
-    This is the main class; it does everything from zero to carrying
-    out a backup or writing a backup script.
+    This is the main class; it does everything from zero to either
+    carrying out a backup or writing a backup script. As a bonus it
+    nags the user about properly securing the key file.
+
+    If this grows to do more than backup, then this class as to be
+    split so someone else takes over the settings management.
 */
 
-/*! Constructs a backup wizard.
-  
-*/
+
+/*! Constructs a backup wizard. */
 
 BackupWizard::BackupWizard()
     : QWizard( nullptr ),

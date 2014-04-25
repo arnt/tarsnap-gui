@@ -33,7 +33,7 @@ private slots:
     void performBackup();
     void saveScript();
     void read();
-    void finish();
+    void finish(int code, QProcess::ExitStatus status);
 
 private:
     QTextEdit * stdout;

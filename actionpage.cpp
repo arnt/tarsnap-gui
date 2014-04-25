@@ -15,7 +15,6 @@
 #include <QDateTime>
 
 #include <QMessageBox>
-#include <QProcess>
 
 #include <iostream>
 
@@ -83,7 +82,7 @@ void ActionPage::performBackup()
     connect( tarsnap, SIGNAL(readyReadStandardOutput()),
 	     this, SLOT(read()) );
     connect( tarsnap, SIGNAL(finished(int, QProcess::ExitStatus)),
-	     this, SLOT(finish()) );
+	     this, SLOT(finish(int, QProcess::ExitStatus)) );
     tarsnap->setWorkingDirectory( field( "baseDirectory").toString() );
     tarsnap->setProcessChannelMode( QProcess::MergedChannels );
     QStringList cli = commandLine( backupName );
@@ -251,8 +250,18 @@ void ActionPage::read()
 
 /*! This slot changes the UI to signal that the backup is done. */
 
-void ActionPage::finish()
+void ActionPage::finish(int code, QProcess::ExitStatus status)
 {
+    if ( status != QProcess::NormalExit && code != 0 ) {
+	QMessageBox::critical( wizard(),
+			       tr( "Error running tarsnap" ),
+			       tr( "Oddly, tarsnap did not finish "
+				   "normally. It seems likely that something "
+				   "may have failed. The command line that "
+				   "failed was something like "
+				   "<code>tarsnap %1</code>" )
+			       .arg( commandLine( "hostname" ).join( " " ) ) );
+    }
     stdout->setPlainText( stdout->toPlainText() +
 			  "\n\nDone" );
     delete tarsnap;

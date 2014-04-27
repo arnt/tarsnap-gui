@@ -32,7 +32,7 @@
 
 ActionPage::ActionPage( BackupWizard * parent, IncludePage * details )
     : QWizardPage( parent ),
-      stdout( new QTextEdit( this ) ),
+      standardout( new QTextEdit( this ) ),
       writeScript( new QPushButton( tr( "&Write Backup Script" ), this ) ),
       backup( new QPushButton( tr( "&Perform backup" ), this ) ),
       tarsnap( nullptr ),
@@ -54,10 +54,10 @@ ActionPage::ActionPage( BackupWizard * parent, IncludePage * details )
     l->addWidget( backup,
 		  0, 1 );
 
-    l->addWidget( stdout,
+    l->addWidget( standardout,
 		  1, 0, 1, 3 );
 
-    stdout->hide();
+    standardout->hide();
 
     l->setColumnStretch( 2, 2 );
 }
@@ -87,8 +87,8 @@ void ActionPage::performBackup()
     tarsnap->setProcessChannelMode( QProcess::MergedChannels );
     QStringList cli = commandLine( backupName );
     tarsnap->start( "/usr/local/bin/tarsnap", cli );
-    stdout->show();
-    stdout->setText( "" );
+    standardout->show();
+    standardout->setText( "" );
 }
 
 
@@ -238,12 +238,12 @@ QString ActionPage::shQuoted( const QString & s ) const
 }
 
 
-/*! This slot reads tarsnap's stdout and puts it onscreen. */
+/*! This slot reads tarsnap's standardout and puts it onscreen. */
 
 void ActionPage::read()
 {
     QByteArray a = tarsnap->readAll();
-    stdout->setPlainText( stdout->toPlainText() +
+    standardout->setPlainText( standardout->toPlainText() +
 			  QString::fromUtf8( a.data(), a.size() ) );
 }
 
@@ -262,8 +262,8 @@ void ActionPage::finish(int code, QProcess::ExitStatus status)
 				   "<code>tarsnap %1</code>" )
 			       .arg( commandLine( "hostname" ).join( " " ) ) );
     }
-    stdout->setPlainText( stdout->toPlainText() +
-			  "\n\nDone" );
+    standardout->setPlainText( standardout->toPlainText() +
+			       "\n\nDone" );
     delete tarsnap;
     tarsnap = nullptr;
 }

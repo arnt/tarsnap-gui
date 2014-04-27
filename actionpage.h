@@ -36,7 +36,7 @@ private slots:
     void finish(int code, QProcess::ExitStatus status);
 
 private:
-    QTextEdit * stdout;
+    QTextEdit * standardout;
     QPushButton * writeScript;
     QPushButton * backup;
     QProcess * tarsnap;

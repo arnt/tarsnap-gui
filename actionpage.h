@@ -36,7 +36,10 @@ private slots:
     void finish(int code, QProcess::ExitStatus status);
 
 private:
-    QTextEdit * standardout;
+    int archived;
+    QTextEdit * unusualOutput;
+    QLineEdit * lastArchived;
+    QByteArray partialLine;
     QPushButton * writeScript;
     QPushButton * backup;
     QProcess * tarsnap;

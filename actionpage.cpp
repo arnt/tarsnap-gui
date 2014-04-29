@@ -32,7 +32,9 @@
 
 ActionPage::ActionPage( BackupWizard * parent, IncludePage * details )
     : QWizardPage( parent ),
-      standardout( new QTextEdit( this ) ),
+      archived( 0 ),
+      unusualOutput( new QTextEdit( this ) ),
+      lastArchived( new QLineEdit( this ) ),
       writeScript( new QPushButton( tr( "&Write Backup Script" ), this ) ),
       backup( new QPushButton( tr( "&Perform backup" ), this ) ),
       tarsnap( nullptr ),
@@ -54,17 +56,20 @@ ActionPage::ActionPage( BackupWizard * parent, IncludePage * details )
     l->addWidget( backup,
 		  0, 1 );
 
-    l->addWidget( standardout,
+    l->addWidget( lastArchived,
 		  1, 0, 1, 3 );
+    l->addWidget( unusualOutput,
+		  2, 0, 1, 3 );
 
-    standardout->hide();
+    lastArchived->hide();
+    unusualOutput->hide();
 
     l->setColumnStretch( 2, 2 );
 }
 
 
-/*! Runs one entire backup using the current configuration, opening a
-    separate window with progress information.
+/*! Runs one entire backup using the current configuration, displaying
+    progress information along the way.
 */
 
 void ActionPage::performBackup()
@@ -87,8 +92,9 @@ void ActionPage::performBackup()
     tarsnap->setProcessChannelMode( QProcess::MergedChannels );
     QStringList cli = commandLine( backupName );
     tarsnap->start( "/usr/local/bin/tarsnap", cli );
-    standardout->show();
-    standardout->setText( "" );
+    lastArchived->show();
+    lastArchived->setText( "" );
+    unusualOutput->setText( "" );
 }
 
 
@@ -191,7 +197,6 @@ QStringList ActionPage::commandLine( const QString & filename ) const
 	   << "-f"
 	   << filename
 	   << "-v"
-	   << "--dry-run"
 	   << "--keyfile"
 	   << field( "keyFile" ).toString()
 	   << "--cachedir"
@@ -238,13 +243,45 @@ QString ActionPage::shQuoted( const QString & s ) const
 }
 
 
-/*! This slot reads tarsnap's standardout and puts it onscreen. */
+/*! This slot reads tarsnap's output and puts it onscreen. Only the
+    last filename is displayed because that's routine and not terribly
+    interesting, but all the odd and unusual output is shown to the
+    user.
+*/
 
 void ActionPage::read()
 {
-    QByteArray a = tarsnap->readAll();
-    standardout->setPlainText( standardout->toPlainText() +
-			  QString::fromUtf8( a.data(), a.size() ) );
+    partialLine.append( tarsnap->readAll() );
+    int bol = 0;
+    bool progress = true;
+    QString filename;
+    QString other;
+    while ( progress ) {
+	progress = false;
+	int i = bol;
+	while ( i < partialLine.size() && partialLine[i] != '\n' )
+	    i++;
+	if ( i < partialLine.size() ) {
+	    progress = true;
+	    if ( i - bol >= 3 &&
+		 partialLine[bol] == 'a' &&
+		 partialLine[bol+1] == ' ' ) {
+		filename = QString::fromUtf8( partialLine.data() + bol + 2,
+					      i - bol - 2 );
+		archived++;
+	    } else {
+		other.append( QString::fromUtf8( partialLine.data() + bol,
+						 i + 1 - bol ) );
+	    }
+	    bol = i + 1;
+	}
+    }
+    partialLine = partialLine.mid( bol );
+    unusualOutput->append( other );
+    if ( !unusualOutput->isVisible() && !other.isEmpty() )
+	unusualOutput->show();
+    if ( !filename.isEmpty() )
+	lastArchived->setText( filename );
 }
 
 
@@ -262,8 +299,8 @@ void ActionPage::finish(int code, QProcess::ExitStatus status)
 				   "<code>tarsnap %1</code>" )
 			       .arg( commandLine( "hostname" ).join( " " ) ) );
     }
-    standardout->setPlainText( standardout->toPlainText() +
-			       "\n\nDone" );
+    // this is ungood. a label would be better. where should it go?
+    lastArchived->setText( tr( "Done; %1 files archived" ).arg( archived ) );
     delete tarsnap;
     tarsnap = nullptr;
 }

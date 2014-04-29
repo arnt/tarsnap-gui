@@ -54,29 +54,33 @@ BackupPage::BackupPage( BackupWizard * parent )
 		  0, 3, 1, 1 );
 
     l->addWidget( new QLabel( tr( "Behaviour" ), this ),
-		  1, 0, 1, 1, Qt::AlignLeft );
+		  2, 0, 1, 1, Qt::AlignLeft );
     l->addWidget( everything,
-		  1, 1, 1, 1, Qt::AlignLeft );
-    l->addWidget( something,
 		  2, 1, 1, 1, Qt::AlignLeft );
+    l->addWidget( something,
+		  3, 1, 1, 1, Qt::AlignLeft );
 
     l->addWidget( new QLabel( tr( "Options" ), this ),
-		  3, 0, 1, 1, Qt::AlignLeft );
+		  5, 0, 1, 1, Qt::AlignLeft );
     l->addWidget( crossMountPoints,
-		  3, 1, 1, 2, Qt::AlignLeft );
+		  5, 1, 1, 2, Qt::AlignLeft );
 
     l->addWidget( new QLabel( tr( "<html>Tarsnap caches information about what "
 				  "it has uploaded in a local directory."
 				  "</html" ),
 			      this ),
-		  4, 1, 1, 2, Qt::AlignLeft );
+		  7, 1, 1, 2, Qt::AlignLeft );
     l->addWidget( new QLabel( tr( "Cache" ), this ),
-		  5, 0, 1, 1, Qt::AlignLeft );
+		  8, 0, 1, 1, Qt::AlignLeft );
     l->addWidget( cacheDirectory,
-		  5, 1, 1, 2 );
+		  8, 1, 1, 2 );
 
     l->setColumnStretch( 1, 2 );
     l->setColumnStretch( 2, 2 );
+
+    l->setRowMinimumHeight( 1, 12 );
+    l->setRowMinimumHeight( 4, 12 );
+    l->setRowMinimumHeight( 6, 12 );
 
     behaviour->addButton( something );
     behaviour->addButton( everything );

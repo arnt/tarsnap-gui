@@ -186,6 +186,7 @@ void AccountPage::handleExit(int code, QProcess::ExitStatus status)
 {
     if ( status == QProcess::NormalExit && code == 0 ) {
 	processStatus->setText( tr( "Key successfully made" ) );
+	emit completeChanged();
 	return;
     }
 

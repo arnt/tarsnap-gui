@@ -2,15 +2,23 @@
 
 #include "backuppage.h"
 
-#include <QGridLayout>
+// geteuid()
+#include <unistd.h>
+#include <sys/types.h>
+
+// getpwuid()
+#include <sys/types.h>
+#include <pwd.h>
 
 #include <QDir>
+
+#include <QGridLayout>
 
 #include <QFileDialog>
 
 
 /*! \class BackupPage backuppage.h
-  
+
     The BackupPage is the only mandatory page in this. Well, the only
     mandatory real page. It asks the main question about what to back
     up, including any supplementary questions that have to be
@@ -41,9 +49,20 @@ BackupPage::BackupPage( BackupWizard * parent )
     connect( browse, SIGNAL(clicked()),
 	     this, SLOT(browseBaseDirectory()) );
 
+    if ( cacheDirectory->text().isEmpty() ) {
+	struct passwd * pw = getpwuid(geteuid());
+	if ( pw && pw->pw_uid )
+	    cacheDirectory->setText( QString::fromUtf8( pw->pw_dir ) +
+				     "/.cache/tarsnap" );
+	else
+	    cacheDirectory->setText( "/var/lib/tarsnap/cache" );
+    }
+
     connect( baseDirectory, SIGNAL(textChanged(const QString &)),
-	     this, SLOT(checkBaseDirectory(const QString &)) );
-    
+	     this, SLOT(checkDirectories()) );
+    connect( cacheDirectory, SIGNAL(textChanged(const QString &)),
+	     this, SLOT(checkDirectories()) );
+	
     QGridLayout * l = new QGridLayout( this );
 
     l->addWidget( new QLabel( tr( "Directory" ), this ),
@@ -141,13 +160,18 @@ void BackupPage::browseBaseDirectory()
 
 /*! The base directory has to exist in order for Next to be
     enabled.
+    
+    The cache directory has to... well, not very much. Tarsnap will
+    make it, so all we really need at this stage is a filename.
 */
 
-void BackupPage::checkBaseDirectory( const QString & name )
+void BackupPage::checkDirectories()
 {
-    QDir directory( name );
+    QDir directory( baseDirectory->text() );
     bool was = complete;
-    complete = ( !name.isEmpty() && directory.exists() );
+    complete = ( !baseDirectory->text().isEmpty() &&
+		 directory.exists() &&
+		 !cacheDirectory->text().isEmpty() );
     if ( complete != was )
 	emit completeChanged();
 }

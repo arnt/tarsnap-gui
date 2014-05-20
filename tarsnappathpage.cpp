@@ -20,7 +20,7 @@
 
 
 /*! \class TarsnapPathPage tarsnappathpage.h
-  
+
     The TarsnapPathPage class encompasses this program's knowledge of
     one thing: Where tarsnap itself is to be found. With any luck, no
     user will ever see this.
@@ -38,7 +38,7 @@ TarsnapPathPage::TarsnapPathPage( BackupWizard * parent )
     registerField( "tarsnapPath", tarsnapPath );
 
     QGridLayout * l = new QGridLayout( this );
-    
+
     QLabel * first = new QLabel(
 	tr( "<html>"
 	    "This UI works by executing tarsnap and perhaps tarsnap-keygen, "

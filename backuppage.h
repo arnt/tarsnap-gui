@@ -20,16 +20,16 @@ class BackupPage: public QWizardPage
     Q_OBJECT
 public:
     BackupPage( BackupWizard * parent );
-    
+
     bool isComplete () const override;
     int nextId() const override;
 
 signals:
     void completeChanged();
-    
+
 private slots:
     void browseBaseDirectory();
-    void checkBaseDirectory(const QString &);
+    void checkDirectories();
     void browseForCache();
 
 private:

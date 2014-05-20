@@ -27,7 +27,7 @@
 
 
 /*! \class AccountPage accountpage.h
-  
+
     This class makes sure we have the details we need about the
     tarsnap account; at the end all we need is the key file, but
     getting there may require more.
@@ -51,7 +51,7 @@ AccountPage::AccountPage( BackupWizard * parent )
     setSubTitle( "Make or select host key" );
     connect( file, SIGNAL(textChanged(const QString &)),
 	     this, SLOT(checkFile()) );
-    
+
     login->setPlaceholderText( tr( "Email address" ) );
     password->setPlaceholderText( tr( "tarsnap.com password" ) );
 
@@ -61,7 +61,7 @@ AccountPage::AccountPage( BackupWizard * parent )
     ::gethostname( buf, 1023 );
     buf[1023] = 0;
     host->setText( QString::fromAscii( buf ) );
-    
+
     file->setText( parent->initialKeyFile() );
     if ( file->text().isEmpty() ) { // have to have some default...
 	struct passwd * pw = getpwuid(geteuid());
@@ -74,13 +74,13 @@ AccountPage::AccountPage( BackupWizard * parent )
 
     registerField( "keyFile", file );
     registerField( "host", host );
-    
+
     connect( makeKey, SIGNAL(clicked()),
 	     this, SLOT(act()) );
     makeKey->setEnabled( !isComplete() );
 
     QGridLayout * l = new QGridLayout( this );
-    
+
     l->addWidget( new QLabel( tr( "Key file" ), this ),
 		  0, 0, 1, 1, Qt::AlignLeft );
     l->addWidget( file,
@@ -126,7 +126,7 @@ AccountPage::AccountPage( BackupWizard * parent )
 		  4, 0, 1, 1, Qt::AlignLeft );
     l->addWidget( host,
 		  4, 1, 1, 1 );
-    
+
     QHBoxLayout * processLayout = new QHBoxLayout();
     l->addLayout( processLayout,
 		  5, 1, 1, 1, Qt::AlignLeft );
@@ -139,9 +139,9 @@ bool AccountPage::isComplete() const
 {
     QString name = file->text();
     if ( name.isEmpty() )
-	 return true;
+	 return false;
     QFileInfo f( name );
-    return f.exists();
+    return f.exists() && f.isFile();
 }
 
 
@@ -188,7 +188,7 @@ void AccountPage::handleExit(int code, QProcess::ExitStatus status)
 	processStatus->setText( tr( "Key successfully made" ) );
 	return;
     }
-	
+
     processStatus->setText( tr( "tarsnap-keygen failed" ) );
     QMessageBox::critical( wizard(),
 			   tr( "Error running tarsnap-keygen" ),

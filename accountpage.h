@@ -18,19 +18,20 @@ class AccountPage: public QWizardPage
     Q_OBJECT
 public:
     AccountPage( BackupWizard * parent );
-    
+
     bool isComplete () const override;
-    
+
 
 signals:
     void completeChanged();
-    
+
 
 private slots:
     void act();
     void browseForFile();
     void handleExit(int, QProcess::ExitStatus);
     void checkFile();
+    void enableMakeKey();
 
 
 private:

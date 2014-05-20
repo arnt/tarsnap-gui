@@ -77,7 +77,12 @@ AccountPage::AccountPage( BackupWizard * parent )
 
     connect( makeKey, SIGNAL(clicked()),
 	     this, SLOT(act()) );
-    makeKey->setEnabled( !isComplete() );
+    enableMakeKey();
+
+    connect( login, SIGNAL(textChanged(const QString &)),
+	     this, SLOT(enableMakeKey()) );
+    connect( password, SIGNAL(textChanged(const QString &)),
+	     this, SLOT(enableMakeKey()) );
 
     QGridLayout * l = new QGridLayout( this );
 
@@ -186,6 +191,7 @@ void AccountPage::handleExit(int code, QProcess::ExitStatus status)
 {
     if ( status == QProcess::NormalExit && code == 0 ) {
 	processStatus->setText( tr( "Key successfully made" ) );
+	makeKey->setEnabled( false );
 	emit completeChanged();
 	return;
     }
@@ -213,7 +219,19 @@ void AccountPage::checkFile()
     bool was = complete;
     complete = isComplete();
     // let's not casually overwrite a valuable key
-    makeKey->setEnabled( !complete );
+    enableMakeKey();
     if ( was != complete )
 	emit completeChanged();
+}
+
+
+/*! This helper enables/disables the "make key" button depending on
+    whether the user has provided the necessary input.
+*/
+
+void AccountPage::enableMakeKey()
+{
+    makeKey->setEnabled( !isComplete() &&
+			 login->text().contains( "@" ) &&
+			 !password->text().isEmpty() );
 }

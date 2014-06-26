@@ -185,11 +185,19 @@ bool AccountPage::isComplete() const
 }
 
 
-/*! Browses for for the local file name. */
+/*! Browses for for the local file name.
+  
+    This assumes that there is a file to be selected. It's also legal
+    to select a nonexistent file name and create it with "make new
+    key", but I think the common case is to browse to find the key, so
+    this change uses the right UI terminology.
+*/
 
 void AccountPage::browseForFile()
 {
-    QString result = QFileDialog::getSaveFileName( this );
+    QString result = QFileDialog::getOpenFileName( this,
+						   tr( "Select key file" ),
+						   file->text() );
     if ( !result.isNull() )
 	file->setText( result );
     emit completeChanged();

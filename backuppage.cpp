@@ -38,8 +38,6 @@ BackupPage::BackupPage( BackupWizard * parent )
 				    this ) ),
       something( new QRadioButton( tr( "Back up only some &subdirectories" ),
 				   this ) ),
-      cacheDirectory( new QLineEdit( parent->initialCacheDirectory(),
-				     this ) ),
       complete( false )
 {
     setTitle( tr( "Backup" ) );
@@ -49,20 +47,9 @@ BackupPage::BackupPage( BackupWizard * parent )
     connect( browse, SIGNAL(clicked()),
 	     this, SLOT(browseBaseDirectory()) );
 
-    if ( cacheDirectory->text().isEmpty() ) {
-	struct passwd * pw = getpwuid(geteuid());
-	if ( pw && pw->pw_uid )
-	    cacheDirectory->setText( QString::fromUtf8( pw->pw_dir ) +
-				     "/.cache/tarsnap" );
-	else
-	    cacheDirectory->setText( "/var/lib/tarsnap/cache" );
-    }
-
     connect( baseDirectory, SIGNAL(textChanged(const QString &)),
 	     this, SLOT(checkDirectories()) );
-    connect( cacheDirectory, SIGNAL(textChanged(const QString &)),
-	     this, SLOT(checkDirectories()) );
-	
+
     QGridLayout * l = new QGridLayout( this );
 
     l->addWidget( new QLabel( tr( "Directory" ), this ),
@@ -84,22 +71,11 @@ BackupPage::BackupPage( BackupWizard * parent )
     l->addWidget( crossMountPoints,
 		  5, 1, 1, 2, Qt::AlignLeft );
 
-    l->addWidget( new QLabel( tr( "<html>Tarsnap caches information about what "
-				  "it has uploaded in a local directory."
-				  "</html" ),
-			      this ),
-		  7, 1, 1, 2, Qt::AlignLeft );
-    l->addWidget( new QLabel( tr( "Cache" ), this ),
-		  8, 0, 1, 1, Qt::AlignLeft );
-    l->addWidget( cacheDirectory,
-		  8, 1, 1, 2 );
-
     l->setColumnStretch( 1, 2 );
     l->setColumnStretch( 2, 2 );
 
     l->setRowMinimumHeight( 1, 12 );
     l->setRowMinimumHeight( 4, 12 );
-    l->setRowMinimumHeight( 6, 12 );
 
     behaviour->addButton( something );
     behaviour->addButton( everything );
@@ -111,7 +87,6 @@ BackupPage::BackupPage( BackupWizard * parent )
     baseDirectory->setText( "/" );
 
     registerField( "baseDirectory", baseDirectory );
-    registerField( "cacheDirectory", cacheDirectory );
     registerField( "crossMountPoints", crossMountPoints );
     registerField( "something", something );
 }
@@ -123,9 +98,6 @@ BackupPage::BackupPage( BackupWizard * parent )
 
 bool BackupPage::isComplete() const
 {
-    if ( cacheDirectory->text().isEmpty() )
-	return false;
-
     QString path = baseDirectory->text();
     if ( path.isEmpty() )
 	return false;
@@ -160,9 +132,6 @@ void BackupPage::browseBaseDirectory()
 
 /*! The base directory has to exist in order for Next to be
     enabled.
-    
-    The cache directory has to... well, not very much. Tarsnap will
-    make it, so all we really need at this stage is a filename.
 */
 
 void BackupPage::checkDirectories()
@@ -170,20 +139,7 @@ void BackupPage::checkDirectories()
     QDir directory( baseDirectory->text() );
     bool was = complete;
     complete = ( !baseDirectory->text().isEmpty() &&
-		 directory.exists() &&
-		 !cacheDirectory->text().isEmpty() );
+		 directory.exists() );
     if ( complete != was )
 	emit completeChanged();
-}
-
-
-/*! Opens a dialog to browse for a location where Tarsnap can store
-    its cache.
-*/
-
-void BackupPage::browseForCache()
-{
-    QString s = QFileDialog::getExistingDirectory( this );
-    if ( !s.isNull() )
-	cacheDirectory->setText( s );
 }

@@ -30,7 +30,6 @@ signals:
 private slots:
     void browseBaseDirectory();
     void checkDirectories();
-    void browseForCache();
 
 private:
     QButtonGroup * behaviour;
@@ -38,7 +37,6 @@ private:
     QCheckBox * crossMountPoints;
     QRadioButton * everything;
     QRadioButton * something;
-    QLineEdit * cacheDirectory;
     bool complete;
 };
 

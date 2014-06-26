@@ -29,8 +29,9 @@ signals:
 private slots:
     void act();
     void browseForFile();
+    void browseForCache();
     void handleExit(int, QProcess::ExitStatus);
-    void checkFile();
+    void checkPathNames();
     void enableMakeKey();
 
 
@@ -42,6 +43,7 @@ private:
     QProcess * tarsnap;
     QPushButton * makeKey;
     QLabel * processStatus;
+    QLineEdit * cacheDirectory;
     bool complete;
 };
 

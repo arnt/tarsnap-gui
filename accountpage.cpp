@@ -45,12 +45,26 @@ AccountPage::AccountPage( BackupWizard * parent )
       host( new QLineEdit( "", this ) ),
       tarsnap( nullptr ),
       makeKey( new QPushButton( tr( "&Make new key" ), this ) ),
-      processStatus( new QLabel( "", this ) )
+      processStatus( new QLabel( "", this ) ),
+      cacheDirectory( new QLineEdit( parent->initialCacheDirectory(),
+				     this ) ),
+      complete(false)
 {
     setTitle( "Host Key" );
     setSubTitle( "Make or select host key" );
     connect( file, SIGNAL(textChanged(const QString &)),
-	     this, SLOT(checkFile()) );
+	     this, SLOT(checkPathNames()) );
+    connect( cacheDirectory, SIGNAL(textChanged(const QString &)),
+	     this, SLOT(checkPathNames()) );
+
+    if ( cacheDirectory->text().isEmpty() ) {
+	struct passwd * pw = getpwuid(geteuid());
+	if ( pw && pw->pw_uid )
+	    cacheDirectory->setText( QString::fromUtf8( pw->pw_dir ) +
+				     "/.cache/tarsnap" );
+	else
+	    cacheDirectory->setText( "/var/lib/tarsnap/cache" );
+    }
 
     login->setPlaceholderText( tr( "Email address" ) );
     password->setPlaceholderText( tr( "tarsnap.com password" ) );
@@ -74,6 +88,7 @@ AccountPage::AccountPage( BackupWizard * parent )
 
     registerField( "keyFile", file );
     registerField( "host", host );
+    registerField( "cacheDirectory", cacheDirectory );
 
     connect( makeKey, SIGNAL(clicked()),
 	     this, SLOT(act()) );
@@ -137,11 +152,31 @@ AccountPage::AccountPage( BackupWizard * parent )
 		  5, 1, 1, 1, Qt::AlignLeft );
     processLayout->addWidget( makeKey );
     processLayout->addWidget( processStatus, 2 );
+
+    l->addWidget( new QLabel( tr( "<html>Tarsnap caches information about what "
+				  "it has uploaded in a local directory."
+				  "</html" ),
+			      this ),
+		  6, 1, 1, 2, Qt::AlignLeft );
+    l->addWidget( new QLabel( tr( "Cache" ), this ),
+		  7, 0, 1, 1, Qt::AlignLeft );
+    l->addWidget( cacheDirectory,
+		  7, 1, 1, 1 );
+
+    b = new QPushButton( tr( "..." ), this );
+    connect( b, SIGNAL(clicked()),
+	     this, SLOT(browseForCache()) );
+    l->addWidget( b,
+		  7, 2, 1, 1 );
+
 }
 
 
 bool AccountPage::isComplete() const
 {
+    if ( cacheDirectory->text().isEmpty() )
+	return false;
+
     QString name = file->text();
     if ( name.isEmpty() )
 	 return false;
@@ -211,10 +246,10 @@ void AccountPage::handleExit(int code, QProcess::ExitStatus status)
 
 
 /*! This helper makes sure to emit completeChanged() whenever the key
-    file's status changes.
+    file's and cache directory's status change.
 */
 
-void AccountPage::checkFile()
+void AccountPage::checkPathNames()
 {
     bool was = complete;
     complete = isComplete();
@@ -234,4 +269,19 @@ void AccountPage::enableMakeKey()
     makeKey->setEnabled( !isComplete() &&
 			 login->text().contains( "@" ) &&
 			 !password->text().isEmpty() );
+}
+
+
+/*! Opens a dialog to browse for a location where Tarsnap can store
+    its cache.
+*/
+
+void AccountPage::browseForCache()
+{
+    QString s =
+	QFileDialog::getExistingDirectory( this,
+					   tr( "Select cache directory" ),
+					   cacheDirectory->text() );
+    if ( !s.isNull() )
+	cacheDirectory->setText( s );
 }

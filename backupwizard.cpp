@@ -14,7 +14,7 @@
 
 
 /*! \class BackupWizard backupwizard.h
-  
+
     This is the main class; it does everything from zero to either
     carrying out a backup or writing a backup script. As a bonus it
     nags the user about properly securing the key file.
@@ -44,7 +44,7 @@ BackupWizard::BackupWizard()
     else
 	setStartId( Backup );
 
-    resize( 700, 434 );
+    resize( 720, 500 );
 }
 
 

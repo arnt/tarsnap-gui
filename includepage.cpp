@@ -23,7 +23,7 @@ IncludePage::IncludePage( BackupWizard * parent )
     setTitle( tr( "Select subdirectories" ) );
     setSubTitle( tr( "Select the subdirectories to "
 		     "be included in the backup" ) );
-    
+
     connect( model, SIGNAL(directoryLoaded(const QString &)),
 	     this, SLOT(selectDirectoryChildren(const QString & )) );
 
@@ -61,6 +61,12 @@ bool IncludePage::isComplete() const
 
 /*! This private directory makes sure all directories are selected as
     soon as the GUI learns they exist.
+
+    Only the top-level directories are automatically selected, not the
+    rest, and the top-level directories should only be automatically
+    selected the first time they're shown. Since the top-level
+    directories are necessarily the first to become visible, we can
+    just disable the slot after its first usage.
 */
 
 void IncludePage::selectDirectoryChildren( const QString & n )
@@ -71,6 +77,9 @@ void IncludePage::selectDirectoryChildren( const QString & n )
     while ( childRow-- > 0 )
 	selections->select( parent.child( childRow, 0 ),
 			    QItemSelectionModel::Select );
+
+    disconnect( model, SIGNAL(directoryLoaded(const QString &)),
+		this, SLOT(selectDirectoryChildren(const QString & )) );
 }
 
 

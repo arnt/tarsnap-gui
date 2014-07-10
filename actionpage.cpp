@@ -21,12 +21,12 @@
 
 
 /*! \class ActionPage actionpage.h
-  
+
     The ActionPage is the other mandatory page. This is what performs
     a backup, or writes a script.
 */
 
-/*! Constructs a 
+/*! Constructs a
 
 */
 
@@ -123,7 +123,7 @@ void ActionPage::saveScript()
 	<< QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" )
 	<< " by tarsnap-gui.\n" // might want a version number
 	<< "\n"
-	<< "if [ ! -f \"" << key << "\" ]; then\n"
+	<< "if [ ! -r \"" << key << "\" ]; then\n"
 	<< "    echo Cannot access " << key << "\n"
 	<< "    [ 0 -eq $(id -u) ] || echo Root access may be needed.\n"
 	<< "    exit 1\n"

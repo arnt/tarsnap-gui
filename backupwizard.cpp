@@ -44,7 +44,7 @@ BackupWizard::BackupWizard()
     else
 	setStartId( Backup );
 
-    resize( 720, 500 );
+    resize( 720, 540 );
 }
 
 
